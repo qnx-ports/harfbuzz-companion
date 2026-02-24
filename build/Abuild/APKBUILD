@@ -1,0 +1,110 @@
+pkgname=harfbuzz
+pkgver=11.3.3
+pkgrel=1
+pkgdesc="Text shaping library"
+url="https://harfbuzz.github.io/"
+arch="all"
+license="MIT"
+depends_dev="
+    icu-dev
+    cairo-dev
+    freetype-dev
+    glib-dev
+    graphite-dev
+    "
+makedepends="
+    $depends_dev
+    gobject-introspection-dev
+    meson
+    cmake
+    ninja
+    pkgconf
+    pkgconf-dev
+    clang
+    libc++-dev
+    "
+checkdepends="python3"
+depends="freetype glib graphite"
+subpackages="
+    $pkgname-static
+    $pkgname-dev
+    $pkgname-cairo
+    $pkgname-gobject
+    $pkgname-icu
+    $pkgname-subset
+    $pkgname-utils
+    "
+source="https://github.com/harfbuzz/harfbuzz/releases/download/$pkgver/harfbuzz-$pkgver.tar.xz"
+
+build() {
+    CC=clang \
+    CXX=clang++ \
+    CFLAGS="$CFLAGS -O2 -Qunused-arguments" \
+    CXXFLAGS="$CXXFLAGS -O2 -Qunused-arguments" \
+    CPPFLAGS="$CPPFLAGS -O2 -Qunused-arguments" \
+    LDFLAGS="-llocale" \
+    meson \
+        --default-library=both \
+        --prefix=/usr \
+        -Dglib=enabled \
+        -Dgobject=enabled \
+        -Dgraphite=enabled \
+        -Dicu=enabled \
+        -Dfreetype=enabled \
+        -Dtests=enabled \
+        -Dcairo=enabled \
+        -Ddocs=disabled \
+        -Dintrospection=enabled \
+        . output
+
+    meson compile -C output
+}
+
+check() {
+    LD_LIBRARY_PATH="$builddir/output/src":$LD_LIBRARY_PATH \
+    meson test --print-errorlogs -C output || msg "Some tests fail due to linking against libc++"
+}
+
+package() {
+    DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+icu() {
+    pkgdesc="Harfbuzz ICU support library"
+    depends="icu-libs"
+    replaces="harfbuzz"
+
+    amove usr/lib/lib*icu.so.*
+}
+
+gobject() {
+    pkgdesc="Harfbuzz gobject library"
+    amove usr/lib/lib*gobject.so.*
+}
+
+cairo() {
+    pkgdesc="Harfbuzz cairo library"
+    depends="cairo"
+    amove usr/lib/lib*cairo.so.*
+}
+
+subset() {
+    pkgdesc="Harfbuzz subset library"
+    amove usr/lib/lib*subset.so.*
+}
+
+utils() {
+    pkgdesc="$pkgdesc (utilities)"
+    depends="$pkgname-gobject"
+    amove usr/bin
+}
+
+dev() {
+    default_dev
+    provides="harfbuzz-bootstrap-dev"
+    provider_priority=2
+}
+
+sha512sums="
+56a971c939522bc5edad5f8a578444844b9101321c6bacfb3d96eadf3b13238144d465dd22171b61ef7b3873af88e43297989c289a5fc37e4d390b64c435cff6  harfbuzz-11.3.3.tar.xz
+"
