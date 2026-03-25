@@ -1,6 +1,6 @@
 pkgname=harfbuzz
 pkgver=11.3.3
-pkgrel=${pkgrel:-0}
+pkgrel=1
 pkgdesc="Text shaping library"
 url="https://harfbuzz.github.io/"
 arch="all"
@@ -105,7 +105,6 @@ dev() {
     provider_priority=2
 }
 
-options="$options ${DISABLE_CHECK:+!check}"
 sha512sums="
 56a971c939522bc5edad5f8a578444844b9101321c6bacfb3d96eadf3b13238144d465dd22171b61ef7b3873af88e43297989c289a5fc37e4d390b64c435cff6  harfbuzz-11.3.3.tar.xz
 "
